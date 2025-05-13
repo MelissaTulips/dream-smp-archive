@@ -4,46 +4,67 @@
         <label for="title">Title</label>
         <input type="text" v-model="title" placeholder="Blog Title" />
       </div>
+  
       <div>
         <label for="content">Content</label>
-        <textarea v-model="content" placeholder="Write your content here..."></textarea>
+        <!-- Quill editor container -->
+        <div ref="quillEditor"></div>
       </div>
     </div>
   </template>
   
   <script>
+  import Quill from "quill"; // Import Quill
+  
   export default {
     props: ['blog'],
     data() {
       return {
-        title: '',  // Initialize empty
-        content: '', // Initialize empty
+        title: '',  // For the title
+        content: '', // For Quill editor content
+        quill: null, // Quill editor instance
       };
     },
     watch: {
-      // Watch for changes to the `blog` prop and update fields accordingly
       blog(newBlog) {
         if (newBlog) {
           this.title = newBlog.title || '';
           this.content = newBlog.content || '';
+          if (this.quill) {
+            this.quill.root.innerHTML = newBlog.content; // Set content to Quill
+          }
         }
-      }
+      },
     },
     methods: {
       getContent() {
         return {
           title: this.title,
-          content: this.content,
+          content: this.quill.root.innerHTML, // Get content from Quill editor
         };
       },
     },
-    // Use the `created` lifecycle hook to initialize data when `blog` prop changes
-    created() {
-      if (this.blog) {
-        this.title = this.blog.title || '';
-        this.content = this.blog.content || '';
+    mounted() {
+      // Initialize Quill editor only after the component has been mounted
+      this.quill = new Quill(this.$refs.quillEditor, {
+        theme: "snow",  // Use the snow theme for Quill
+        modules: {
+          toolbar: [
+            [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            [{ 'align': [] }],
+            ['bold', 'italic', 'underline'],
+            ['link'],
+            ['image'],
+          ],
+        },
+      });
+  
+      // If we have initial content (edit mode), set it into Quill editor
+      if (this.blog && this.blog.content) {
+        this.quill.root.innerHTML = this.blog.content;
       }
-    }
+    },
   };
   </script>
   
@@ -52,7 +73,7 @@
     margin: 20px 0;
   }
   
-  input, textarea {
+  input {
     width: 100%;
     padding: 10px;
     font-size: 16px;
@@ -61,8 +82,12 @@
     border: 1px solid #ccc;
   }
   
-  textarea {
-    min-height: 200px;
+  .quillEditor {
+    min-height: 300px;
+  }
+  
+  .quill .ql-editor {
+    min-height: 300px;
   }
   </style>
   

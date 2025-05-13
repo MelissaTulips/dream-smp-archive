@@ -32,7 +32,7 @@ export async function addBlog({ title, content, tags, characterId }) {
   await addDoc(collection(db, 'blogs'), {
     title,
     content,
-    tags, // tags should be an array of tag IDs (e.g., ["tag1", "tag2"])
+    tags, 
     characterId,
     createdAt: new Date(),
   });

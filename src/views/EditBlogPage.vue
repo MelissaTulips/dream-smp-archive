@@ -1,69 +1,92 @@
 <template>
+  <div class="blog-editor">
     <div>
-      <h2>Edit Blog</h2>
-      
-      <!-- Blog Editor Component -->
-      <BlogEditor v-if="blog" :blog="blog" @submit="submitEditBlog" />
-    
-      <!-- Tags Dropdown for selecting tags -->
-      <div class="tags-dropdown">
-        <label for="tags">Select Tags:</label>
-        <select v-model="selectedTags" multiple>
-          <option v-for="tag in tags" :key="tag.id" :value="tag.id">{{ tag.name }}</option>
-        </select>
-      </div>
-    
-      <!-- Submit Button -->
-      <button @click="submitEditBlog">Save Changes</button>
+      <label for="title">Title</label>
+      <input type="text" v-model="title" placeholder="Blog Title" />
     </div>
-  </template>
-  
-  <script>
-  import { getTags, updateBlog } from '../blogService'; 
-  import BlogEditor from '../components/BlogEditor.vue';
-  import { doc, getDoc } from 'firebase/firestore'; 
-  import { db } from '../firebaseConfig';  
-  
-  export default {
-    components: { BlogEditor },
-    data() {
+    
+    <div>
+      <label for="content">Content</label>
+      <!-- Quill editor container -->
+      <div ref="quillEditor"></div>
+    </div>
+  </div>
+</template>
+
+<script>
+import Quill from "quill"; // Import Quill
+
+export default {
+  props: ['blog'],
+  data() {
+    return {
+      title: '',
+      content: '',  // For Quill editor content
+      quill: null,  // Quill editor instance
+    };
+  },
+  watch: {
+    blog(newBlog) {
+      if (newBlog) {
+        this.title = newBlog.title || '';
+        this.content = newBlog.content || '';
+        if (this.quill) {
+          this.quill.root.innerHTML = newBlog.content; // Set content to Quill
+        }
+      }
+    }
+  },
+  methods: {
+    getContent() {
       return {
-        blog: null,  // The blog being edited
-        tags: [],    // List of available tags
-        selectedTags: [],  // Selected tags (IDs)
+        title: this.title,
+        content: this.quill.root.innerHTML, // Get content from Quill editor
       };
     },
-    async created() {
-      await this.fetchTags();
-      await this.fetchBlog();  // Load the blog details based on the URL ID
-    },
-    methods: {
-      async fetchTags() {
-        this.tags = await getTags(); // Get all tags
+  },
+  mounted() {
+    // Initialize Quill editor
+    this.quill = new Quill(this.$refs.quillEditor, {
+      theme: "snow",  // Use the snow theme for Quill
+      modules: {
+        toolbar: [
+          [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+          [{ 'align': [] }],
+          ['bold', 'italic', 'underline'],
+          ['link'],
+          ['image'],
+        ],
       },
-      async fetchBlog() {
-        const blogId = this.$route.params.id;
-        if (!blogId) {
-          console.error('Blog ID is undefined or invalid!');
-          return;
-        }
-  
-        const docRef = doc(db, "blogs", blogId);  // Referencing the blog document
-        const docSnap = await getDoc(docRef);
-        
-        if (docSnap.exists()) {
-          this.blog = docSnap.data();
-          this.selectedTags = this.blog.tags; // Set selected tags
-        } else {
-          console.error('Blog not found');
-        }
-      },
-      async submitEditBlog(updatedBlog) {
-        updatedBlog.tags = this.selectedTags;  // Add the selected tags
-        await updateBlog(this.blog.id, updatedBlog); // Update the blog in Firebase
-        this.$router.push(`/blog/${this.blog.id}`);  // Redirect to the blog page
-      },
-    },
-  };
-  </script>
-  
+    });
+
+    // If we have initial content (edit mode), set it into Quill editor
+    if (this.blog && this.blog.content) {
+      this.quill.root.innerHTML = this.blog.content;
+    }
+  },
+};
+</script>
+
+<style scoped>
+.blog-editor {
+  margin: 20px 0;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.quillEditor {
+  min-height: 300px;
+}
+
+.quill .ql-editor {
+  min-height: 300px;
+}
+</style>

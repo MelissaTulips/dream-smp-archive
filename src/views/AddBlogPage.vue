@@ -19,16 +19,16 @@
   </template>
   
   <script>
-  import BlogEditor from '../components/BlogEditor.vue'
-  import { getTags, addBlog } from '../blogService'
+  import BlogEditor from "../components/BlogEditor.vue"; 
+  import { getTags, addBlog } from "../blogService"; 
   
   export default {
     components: { BlogEditor },
     data() {
       return {
-        tags: [],           // List of all available tags
-        selectedTags: [],   // Stores selected tag IDs (this is what you want to save)
-      }
+        tags: [],
+        selectedTags: [],  
+      };
     },
     async created() {
       // Fetch tags from Firebase
@@ -36,27 +36,21 @@
     },
     methods: {
       async fetchTags() {
-        this.tags = await getTags();  // Fetch all tags from the database
+        this.tags = await getTags(); 
       },
       async submitBlog() {
-        // Get blog details from the BlogEditor component
         const { title, content } = this.$refs.blogEditor.getContent();
         const characterId = this.$route.params.id;
   
-        // Ensure selectedTags is an array of tag IDs
         const validTags = Array.isArray(this.selectedTags) ? this.selectedTags : [];
   
-        // Submit the blog with the selected tags
         await addBlog({ title, content, tags: validTags, characterId });
   
-        // Redirect back to the character page
         this.$router.push(`/character/${characterId}`);
       },
-    }
-  }
+    },
+  };
   </script>
-  
-  
   
   <style scoped>
   .tags-dropdown {
