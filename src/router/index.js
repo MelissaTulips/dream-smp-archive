@@ -8,7 +8,8 @@ import EditCharacterPage from '../views/EditCharacterPage.vue';
 import CharacterDetailsPage from '../views/CharacterDetailsPage.vue';
 import AdminPanelPage from '../views/AdminPanelPage.vue'; 
 import TagsPage from '../views/TagsPage.vue';
-
+import AddBlogPage from '../views/AddBlogPage.vue'
+import EditBlogPage from '../views/EditBlogPage.vue'
 
 
 const routes = [
@@ -58,6 +59,20 @@ const routes = [
     name: 'tags',
     component: TagsPage,
   },
+
+
+  {
+    path: '/character/:id/blog/new',
+    name: 'AddBlogPage',
+    component: () => import('../views/AddBlogPage.vue')
+  }
+  ,
+  {
+    path: '/blog/:blogId/edit',
+    name: 'EditBlog',
+    component: EditBlogPage,
+  },
+
 ];
 
 const router = createRouter({
